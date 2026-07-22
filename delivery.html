@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elevate Rider - Premium Partner Platform</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --bg-base: #09090b; --bg-surface: #18181b; --bg-glass: rgba(24, 24, 27, 0.7);
+            --text-primary: #f4f4f5; --text-secondary: #a1a1aa; --border-color: rgba(255, 255, 255, 0.08);
+            --brand-primary: #10b981; --brand-hover: #059669; --brand-glow: 0 0 20px rgba(16, 185, 129, 0.3);
+            --success: #10b981; --warning: #f59e0b; --danger: #ef4444; --info: #3b82f6; --offline: #71717a;
+            --radius-md: 12px; --radius-lg: 20px; --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-base); color: var(--text-primary); overflow: hidden; }
+        button, input { outline: none; border: none; font-family: inherit; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; } ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
+        
+        .layout { display: flex; height: 100vh; width: 100vw; }
+        .sidebar { width: 280px; background: var(--bg-surface); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; z-index: 20; }
+        .brand { padding: 24px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border-color); }
+        .brand-icon { width: 40px; height: 40px; border-radius: 12px; background: var(--brand-primary); color: white; display: flex; justify-content: center; align-items: center; font-size: 24px; box-shadow: var(--brand-glow); }
+        .brand-text { font-size: 20px; font-weight: 800; }
+        .nav-menu { flex: 1; padding: 20px 12px; display: flex; flex-direction: column; gap: 4px; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: var(--radius-md); color: var(--text-secondary); font-weight: 500; font-size: 14px; cursor: pointer; transition: var(--transition); }
+        .nav-item i { font-size: 22px; }
+        .nav-item:hover { background: var(--border-color); color: var(--text-primary); }
+        .nav-item.active { background: rgba(16, 185, 129, 0.1); color: var(--brand-primary); }
+        
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .header { height: 80px; padding: 0 32px; display: flex; justify-content: space-between; align-items: center; background: var(--bg-glass); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border-color); z-index: 10; }
+        
+        .duty-toggle-container { display: flex; align-items: center; gap: 12px; background: var(--bg-base); padding: 6px 16px 6px 6px; border-radius: 30px; border: 1px solid var(--border-color); }
+        .toggle-switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--offline); transition: .4s; border-radius: 30px; }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--brand-primary); box-shadow: var(--brand-glow); }
+        input:checked + .slider:before { transform: translateX(22px); }
+        .duty-text { font-weight: 700; font-size: 14px; color: var(--offline); }
+        input:checked ~ .duty-text { color: var(--brand-primary); }
+
+        .view-container { flex: 1; overflow-y: auto; padding: 32px; }
+        .view-section { display: none; animation: slideUpFade 0.3s ease-out forwards; }
+        .view-section.active { display: block; }
+        @keyframes slideUpFade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .page-header { margin-bottom: 32px; }
+        .page-title { font-size: 32px; font-weight: 800; margin-bottom: 8px; }
+        .page-desc { color: var(--text-secondary); font-size: 15px; }
+
+        .card { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 24px; position: relative; }
+        
+        .btn { padding: 12px 24px; border-radius: var(--radius-md); font-size: 15px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: var(--transition); }
+        .btn-primary { background: var(--brand-primary); color: white; box-shadow: var(--brand-glow); }
+        .btn-primary:hover { background: var(--brand-hover); transform: translateY(-2px); }
+        .btn-secondary { background: var(--bg-base); color: var(--text-primary); border: 1px solid var(--border-color); }
+        .btn-danger { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
+        .btn-danger:hover { background: rgba(239, 68, 68, 0.2); }
+
+        .marketplace-layout { display: grid; grid-template-columns: 1fr; gap: 24px; }
+        @media(min-width: 1024px) { .marketplace-layout { grid-template-columns: 1fr 450px; } }
+        
+        .bid-card { border-left: 4px solid var(--info); margin-bottom: 16px; padding: 20px; }
+        .bid-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border-color); }
+
+        .customer-card { background: rgba(59, 130, 246, 0.05); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: var(--radius-md); padding: 20px; margin-bottom: 20px; }
+        .info-row { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; font-size: 14px; }
+        .info-row i { font-size: 20px; color: var(--text-secondary); }
+        
+        .chat-container { border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--bg-base); height: 300px; display: flex; flex-direction: column; overflow: hidden; }
+        .chat-header { background: var(--bg-surface); padding: 12px 16px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 14px; }
+        .chat-messages { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+        .msg { max-width: 85%; padding: 10px 14px; border-radius: 12px; font-size: 13.5px; line-height: 1.5; }
+        .msg-in { background: var(--bg-surface); border: 1px solid var(--border-color); align-self: flex-start; border-bottom-left-radius: 4px; }
+        .msg-out { background: var(--brand-primary); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+        .chat-input-area { display: flex; border-top: 1px solid var(--border-color); background: var(--bg-surface); }
+        .chat-input-area input { flex: 1; padding: 16px; background: transparent; color: var(--text-primary); font-size: 14px; }
+        .chat-input-area button { padding: 0 20px; background: transparent; color: var(--brand-primary); font-weight: 700; cursor: pointer; }
+
+        .otp-box { display: flex; gap: 12px; margin-top: 16px; }
+        .otp-input { width: 50px; height: 60px; background: var(--bg-base); border: 2px solid var(--border-color); border-radius: 12px; font-size: 24px; font-weight: 800; text-align: center; color: var(--text-primary); }
+
+        .rating-badge { display: inline-flex; align-items: center; gap: 4px; background: rgba(245, 158, 11, 0.15); color: var(--warning); padding: 3px 8px; border-radius: 6px; font-size: 12px; font-weight: 700; }
+
+        #toast-container { position: fixed; bottom: 32px; right: 32px; z-index: 1000; display: flex; flex-direction: column; gap: 12px; }
+        .toast { background: var(--bg-surface); padding: 16px 24px; border-radius: var(--radius-md); color: var(--text-primary); font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 12px; border: 1px solid var(--border-color); animation: slideIn 0.3s forwards; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon"><i class="ph-bold ph-motorcycle"></i></div>
+                <div class="brand-text">Elevate Rider</div>
+            </div>
+            <div class="nav-menu">
+                <div class="nav-item active" data-target="dashboard"><i class="ph ph-squares-four"></i> Dashboard</div>
+                <div class="nav-item" data-target="marketplace">
+                    <i class="ph ph-storefront"></i> Ride Marketplace
+                    <span class="badge" style="margin-left:auto; background:var(--info); color:#fff; padding:2px 8px; border-radius:12px; font-size:12px; font-weight:800;" id="nav-pool-count">0</span>
+                </div>
+                <div class="nav-item" data-target="activeride">
+                    <i class="ph ph-crosshair"></i> Active Order
+                </div>
+                <div class="nav-item" data-target="earnings"><i class="ph ph-wallet"></i> Earnings Ledger</div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="header">
+                <div class="duty-toggle-container">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="duty-toggle" onchange="AppController.toggleOnlineStatus(this)">
+                        <span class="slider"></span>
+                    </label>
+                    <span class="duty-text" id="duty-status">OFFLINE</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <div class="rating-badge"><i class="ph-fill ph-star"></i> 4.93</div>
+                    <div style="width: 44px; height: 44px; border-radius: 50%; background: url('https://ui-avatars.com/api/?name=Partner&background=10b981&color=fff') center/cover;"></div>
+                </div>
+            </header>
+
+            <div class="view-container">
+                <!-- 1. DASHBOARD -->
+                <section id="view-dashboard" class="view-section active">
+                    <div class="page-header">
+                        <h1 class="page-title">Overview</h1>
+                        <p class="page-desc">Your daily delivery performance summary.</p>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-bottom: 32px;">
+                        <div class="card">
+                            <div style="color:var(--text-secondary); font-size:14px; font-weight:600; margin-bottom:12px;">Total Earnings</div>
+                            <div style="font-size:36px; font-weight:800; color:var(--success);" id="dash-earnings">₹0.00</div>
+                        </div>
+                        <div class="card">
+                            <div style="color:var(--text-secondary); font-size:14px; font-weight:600; margin-bottom:12px;">Trips Completed</div>
+                            <div style="font-size:36px; font-weight:800;" id="dash-trips">0</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3 style="font-size:18px; margin-bottom:24px;">Earnings Trend</h3>
+                        <div style="height: 300px;"><canvas id="earningsChart"></canvas></div>
+                    </div>
+                </section>
+
+                <!-- 2. MARKETPLACE -->
+                <section id="view-marketplace" class="view-section">
+                    <div class="page-header">
+                        <h1 class="page-title">Ride Marketplace</h1>
+                        <p class="page-desc">Accept or reject open customer requests ready for dispatch.</p>
+                    </div>
+
+                    <div id="marketplace-offline-state" style="text-align:center; padding:60px 20px;">
+                        <i class="ph ph-wifi-slash" style="font-size:64px; color:var(--offline); margin-bottom:16px;"></i>
+                        <h2>System Currently Offline</h2>
+                        <p style="color:var(--text-secondary); margin-top:8px;">Switch your duty toggle to ONLINE to receive order assignments.</p>
+                    </div>
+
+                    <div id="marketplace-locked-state" style="display:none; text-align:center; padding:60px 20px; background:rgba(245,158,11,0.05); border:1px solid rgba(245,158,11,0.2); border-radius:var(--radius-lg);">
+                        <i class="ph ph-lock-key" style="font-size:64px; color:var(--warning); margin-bottom:16px;"></i>
+                        <h2 style="color:var(--warning);">Active Job Lock Imposed</h2>
+                        <p style="color:var(--text-secondary); margin-top:8px;">Complete your active delivery before accepting new marketplace runs.</p>
+                    </div>
+
+                    <div class="marketplace-layout" id="marketplace-content-state" style="display:none;">
+                        <div style="display:flex; flex-direction:column; gap:16px; overflow-y:auto;" id="available-rides-list">
+                            <!-- Injected via JS -->
+                        </div>
+                        <div class="card" style="display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;">
+                            <i class="ph ph-broadcast" style="font-size:48px; color:var(--brand-primary); margin-bottom:16px;"></i>
+                            <h3>Scanning for Requests</h3>
+                            <p style="color:var(--text-secondary); font-size:13px; margin-top:6px;">Orders ready at partner kitchens will appear here automatically.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 3. ACTIVE RIDE -->
+                <section id="view-activeride" class="view-section">
+                    <div class="page-header">
+                        <h1 class="page-title">Active Order Execution</h1>
+                        <p class="page-desc">Fulfill active pickup and delivery steps.</p>
+                    </div>
+
+                    <div id="no-active-ride-state" style="text-align:center; padding:60px 20px;">
+                        <i class="ph ph-package" style="font-size:64px; color:var(--text-secondary); margin-bottom:16px;"></i>
+                        <h2>No Active Order Assigned</h2>
+                    </div>
+
+                    <div id="active-ride-state" class="marketplace-layout" style="display:none;">
+                        <div style="display:flex; flex-direction:column; gap:20px;">
+                            <div class="card bid-card" style="border-left-color:var(--brand-primary);" id="active-ride-header"></div>
+                            
+                            <div class="card">
+                                <h3>Order Items & Breakdown</h3>
+                                <div id="active-items-list" style="margin-top:12px; display:flex; flex-direction:column; gap:8px;"></div>
+                            </div>
+
+                            <div class="customer-card" id="active-customer-info"></div>
+
+                            <div class="card">
+                                <h3>Delivery Verification PIN</h3>
+                                <p style="font-size:13px; color:var(--text-secondary); margin-top:4px;">Enter verification PIN provided by the customer upon handoff.</p>
+                                <div class="otp-box">
+                                    <input type="text" class="otp-input" maxlength="1" id="pin-1">
+                                    <input type="text" class="otp-input" maxlength="1" id="pin-2">
+                                    <input type="text" class="otp-input" maxlength="1" id="pin-3">
+                                    <input type="text" class="otp-input" maxlength="1" id="pin-4">
+                                </div>
+                                <div style="display:flex; gap:12px; margin-top:24px;">
+                                    <button class="btn btn-primary" style="flex:1;" onclick="AppController.completeActiveRide()">Complete Delivery</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card" style="padding:0; overflow:hidden;">
+                            <div style="padding: 20px; border-bottom: 1px solid var(--border-color);">
+                                <h3 style="display:flex; align-items:center; gap:8px;"><i class="ph-fill ph-chat-circle-text" style="color:var(--info);"></i> Contact Customer</h3>
+                            </div>
+                            <div class="chat-container" style="border:none; border-radius:0; height:100%; min-height:400px;">
+                                <div class="chat-header">
+                                    <span id="chat-title-name">Customer Support Link</span>
+                                </div>
+                                <div class="chat-messages" id="chat-messages">
+                                    <div class="msg msg-in">Hi partner, please ring the doorbell upon arrival!</div>
+                                </div>
+                                <div class="chat-input-area">
+                                    <input type="text" id="chat-input" placeholder="Type a message...">
+                                    <button onclick="AppController.sendChatMessage()">Send</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4. EARNINGS -->
+                <section id="view-earnings" class="view-section">
+                    <div class="page-header"><h1 class="page-title">Wallet & Ledger</h1></div>
+                    <div class="card" style="padding:0; overflow:hidden;">
+                        <table style="width:100%; text-align:left; border-collapse: collapse;">
+                            <thead>
+                                <tr style="border-bottom:1px solid var(--border-color); background:rgba(255,255,255,0.02)">
+                                    <th style="padding:16px;">Job ID</th><th style="padding:16px;">Customer & Merchant</th><th style="padding:16px; text-align:right;">Payout</th>
+                                </tr>
+                            </thead>
+                            <tbody id="completed-trips-table"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <script>
+        const AppController = {
+            chartInstance: null,
+
+            init: () => {
+                AppController.bindEvents();
+                AppController.renderAll();
+                AppController.initChart();
+            },
+
+            bindEvents: () => {
+                document.querySelectorAll('.nav-item[data-target]').forEach(item => {
+                    item.addEventListener('click', () => {
+                        document.querySelector('.nav-item.active').classList.remove('active');
+                        item.classList.add('active');
+                        document.querySelector('.view-section.active').classList.remove('active');
+                        document.getElementById(`view-${item.dataset.target}`).classList.add('active');
+                    });
+                });
+
+                const otpInputs = document.querySelectorAll('.otp-input');
+                otpInputs.forEach((input, index) => {
+                    input.addEventListener('keyup', (e) => {
+                        if(e.target.value.length === 1 && index < otpInputs.length - 1) otpInputs[index + 1].focus();
+                    });
+                });
+            },
+
+            showToast: (msg, type = 'success') => {
+                const toast = document.createElement('div');
+                toast.className = 'toast';
+                const color = type === 'danger' ? 'var(--danger)' : 'var(--success)';
+                toast.innerHTML = `<i class="ph-fill ph-check-circle" style="font-size:24px; color:${color};"></i> ${msg}`;
+                document.getElementById('toast-container').appendChild(toast);
+                setTimeout(() => toast.remove(), 3500);
+            },
+
+            toggleOnlineStatus: (checkbox) => {
+                const isOnline = checkbox.checked;
+                document.getElementById('duty-status').textContent = isOnline ? "ONLINE" : "OFFLINE";
+                if(isOnline) AppController.showToast("You are online. Scanning marketplace...", "success");
+                AppController.syncMarketplace();
+            },
+
+            renderAll: () => {
+                AppController.renderDashboard();
+                AppController.syncMarketplace();
+                AppController.renderActiveRide();
+                AppController.renderEarnings();
+            },
+
+            // --- MARKETPLACE & ORDER POOL ---
+            syncMarketplace: () => {
+                const isOnline = document.getElementById('duty-toggle').checked;
+                const activeRide = JSON.parse(localStorage.getItem('rider_activeRide'));
+                
+                const viewOffline = document.getElementById('marketplace-offline-state');
+                const viewLocked = document.getElementById('marketplace-locked-state');
+                const viewContent = document.getElementById('marketplace-content-state');
+                const listContainer = document.getElementById('available-rides-list');
+                const badge = document.getElementById('nav-pool-count');
+
+                if(!isOnline) { viewOffline.style.display = 'block'; viewLocked.style.display = 'none'; viewContent.style.display = 'none'; badge.style.display = 'none'; return; }
+                if(activeRide) { viewOffline.style.display = 'none'; viewLocked.style.display = 'block'; viewContent.style.display = 'none'; badge.style.display = 'none'; return; }
+
+                viewOffline.style.display = 'none'; viewLocked.style.display = 'none'; viewContent.style.display = 'grid';
+                
+                // Read global database for orders marked 'ready' by manager
+                const globalOrders = JSON.parse(localStorage.getItem('SHARED_ORDERS')) || [];
+                const readyOrders = globalOrders.filter(o => o.status === 'ready');
+                
+                badge.style.display = 'block'; 
+                badge.textContent = readyOrders.length;
+
+                if(readyOrders.length === 0) {
+                    listContainer.innerHTML = `<div class="card" style="text-align:center; padding:40px; color:var(--text-secondary);"><h3>No open orders right now.</h3></div>`;
+                    return;
+                }
+
+                listContainer.innerHTML = readyOrders.map(run => {
+                    // Compute proper fixed or order-based payout (e.g. 15% of total + base fee)
+                    const runPay = run.pay || (parseFloat(run.total || 150) * 0.15 + 30).toFixed(2);
+                    const distance = run.distance || (Math.random() * 4 + 1).toFixed(1);
+                    
+                    return `
+                        <div class="card bid-card">
+                            <div class="bid-meta" style="display:flex; justify-content:space-between; align-items:center;">
+                                <span style="font-weight:700; color:var(--info);">${run.id}</span>
+                                <span class="rating-badge"><i class="ph-fill ph-star"></i> 4.8 Store Rating</span>
+                            </div>
+                            <div style="font-size:16px; font-weight:700; margin-top:8px;">${run.restaurant}</div>
+                            <div style="font-size:13px; color:var(--text-secondary); margin-bottom:12px;">Customer: ${run.customer || 'Guest User'} • 📏 ${distance} km away</div>
+                            
+                            <div style="background:rgba(255,255,255,0.02); padding:12px; border-radius:8px; border:1px solid var(--border-color); font-size:13px; margin-bottom:16px;">
+                                <div style="margin-bottom:6px;"><strong style="color:var(--text-primary);">Order Contents:</strong> ${run.itemsSummary || run.items}</div>
+                                <div><strong style="color:var(--text-primary);">Dropoff:</strong> ${run.dropAddr}</div>
+                            </div>
+
+                            <div class="bid-footer">
+                                <div style="font-size:22px; font-weight:800; color:var(--success);">₹${runPay}</div>
+                                <div style="display:flex; gap:10px;">
+                                    <button class="btn btn-danger" style="padding:10px 16px; font-size:13px;" onclick="AppController.rejectOrder('${run.id}')">Reject</button>
+                                    <button class="btn btn-primary" style="padding:10px 16px; font-size:13px;" onclick="AppController.acceptCustomerRide('${run.id}', ${runPay})">Accept Order</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            },
+
+            acceptCustomerRide: (orderId, calculatedPay) => {
+                let globalOrders = JSON.parse(localStorage.getItem('SHARED_ORDERS')) || [];
+                let orderIndex = globalOrders.findIndex(o => o.id === orderId);
+                
+                if(orderIndex !== -1) {
+                    globalOrders[orderIndex].status = 'accepted';
+                    globalOrders[orderIndex].pay = parseFloat(calculatedPay);
+                    localStorage.setItem('SHARED_ORDERS', JSON.stringify(globalOrders));
+                    
+                    localStorage.setItem('rider_activeRide', JSON.stringify(globalOrders[orderIndex]));
+                    
+                    AppController.renderAll(); 
+                    AppController.showToast(`Order ${orderId} accepted successfully!`, "success");
+                    document.querySelector('.nav-item[data-target="activeride"]').click();
+                }
+            },
+
+            rejectOrder: (orderId) => {
+                let globalOrders = JSON.parse(localStorage.getItem('SHARED_ORDERS')) || [];
+                let orderIndex = globalOrders.findIndex(o => o.id === orderId);
+                if(orderIndex !== -1) {
+                    globalOrders[orderIndex].status = 'preparing'; 
+                    localStorage.setItem('SHARED_ORDERS', JSON.stringify(globalOrders));
+                    AppController.syncMarketplace();
+                    AppController.showToast(`Order ${orderId} rejected.`, "danger");
+                }
+            },
+
+            renderActiveRide: () => {
+                const activeRide = JSON.parse(localStorage.getItem('rider_activeRide'));
+                
+                if(!activeRide) {
+                    document.getElementById('no-active-ride-state').style.display = 'block';
+                    document.getElementById('active-ride-state').style.display = 'none';
+                    return;
+                }
+
+                document.getElementById('no-active-ride-state').style.display = 'none';
+                document.getElementById('active-ride-state').style.display = 'grid';
+                
+                document.getElementById('active-ride-header').innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div><span style="font-size:11px; font-weight:800; color:var(--info);">ONGOING DELIVERY</span><h3 style="font-size:20px; font-weight:800;">${activeRide.id}</h3></div>
+                        <div style="font-size:24px; font-weight:800; color:var(--success);">₹${activeRide.pay}</div>
+                    </div>
+                `;
+
+                let itemsHTML = '';
+                if(activeRide.orderDetails && Array.isArray(activeRide.orderDetails)) {
+                    itemsHTML = activeRide.orderDetails.map(i => `
+                        <div style="display:flex; justify-content:space-between; font-size:13.5px; padding:6px 0; border-bottom:1px dashed var(--border-color);">
+                            <span>${i.qty}x ${i.name}</span>
+                            <span style="font-weight:700;">₹${i.itemTotal || (i.qty * i.unitPrice)}</span>
+                        </div>
+                    `).join('');
+                } else {
+                    itemsHTML = `<div>${activeRide.itemsSummary || activeRide.items}</div>`;
+                }
+                document.getElementById('active-items-list').innerHTML = itemsHTML;
+
+                document.getElementById('active-customer-info').innerHTML = `
+                    <h3>Customer Details</h3>
+                    <div class="info-row" style="margin-top:12px;"><i class="ph-fill ph-user"></i><div><strong>${activeRide.customer || 'Guest User'}</strong></div></div>
+                    <div class="info-row"><i class="ph-fill ph-phone"></i><div style="font-family:monospace; font-size:15px; color:var(--text-primary);">${activeRide.phone || '9876543210'}</div></div>
+                    <div class="info-row"><i class="ph-fill ph-map-pin"></i><div style="line-height:1.5;">${activeRide.dropAddr}</div></div>
+                `;
+            },
+
+            completeActiveRide: () => {
+                let active = JSON.parse(localStorage.getItem('rider_activeRide'));
+                if(!active) return;
+
+                let p1 = document.getElementById('pin-1').value;
+                if(!p1) return AppController.showToast("Enter customer verification PIN to complete delivery", "danger");
+
+                let globalOrders = JSON.parse(localStorage.getItem('SHARED_ORDERS')) || [];
+                let orderIndex = globalOrders.findIndex(o => o.id === active.id);
+                if(orderIndex !== -1) {
+                    globalOrders[orderIndex].status = 'completed';
+                    localStorage.setItem('SHARED_ORDERS', JSON.stringify(globalOrders));
+                }
+
+                let completed = JSON.parse(localStorage.getItem('rider_completedRides')) || [];
+                completed.push(active);
+                localStorage.setItem('rider_completedRides', JSON.stringify(completed));
+                localStorage.removeItem('rider_activeRide');
+
+                AppController.renderAll();
+                AppController.updateChartData();
+                AppController.showToast(`Delivery Complete! ₹${active.pay} credited.`, "success");
+                document.querySelector('.nav-item[data-target="dashboard"]').click();
+            },
+
+            renderDashboard: () => {
+                const completed = JSON.parse(localStorage.getItem('rider_completedRides')) || [];
+                const totalEarnings = completed.reduce((s, r) => s + parseFloat(r.pay || 0), 0);
+                document.getElementById('dash-earnings').textContent = `₹${totalEarnings.toFixed(2)}`;
+                document.getElementById('dash-trips').textContent = completed.length;
+            },
+
+            renderEarnings: () => {
+                const completed = JSON.parse(localStorage.getItem('rider_completedRides')) || [];
+                const tbody = document.getElementById('completed-trips-table');
+                if(completed.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding:32px; color:var(--text-secondary);">No historical records found.</td></tr>`;
+                    return;
+                }
+                tbody.innerHTML = completed.map(r => `
+                    <tr style="border-bottom:1px solid var(--border-color);">
+                        <td style="padding:16px; font-weight:600; color:var(--info);">${r.id}</td>
+                        <td style="padding:16px;"><div><strong>${r.customer || 'Guest User'}</strong></div><div style="font-size:12px; color:var(--text-secondary);">${r.restaurant}</div></td>
+                        <td style="padding:16px; text-align:right; font-weight:800; color:var(--success);">₹${parseFloat(r.pay || 0).toFixed(2)}</td>
+                    </tr>
+                `).reverse().join('');
+            },
+
+            sendChatMessage: () => {
+                const input = document.getElementById('chat-input');
+                if(!input.value.trim()) return;
+                const chat = document.getElementById('chat-messages');
+                chat.innerHTML += `<div class="msg msg-out">${input.value}</div>`;
+                input.value = '';
+                chat.scrollTop = chat.scrollHeight;
+                setTimeout(() => { chat.innerHTML += `<div class="msg msg-in">Got it, thank you!</div>`; chat.scrollTop = chat.scrollHeight; }, 1000);
+            },
+
+            initChart: () => {
+                const ctx = document.getElementById('earningsChart').getContext('2d');
+                AppController.chartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Today'],
+                        datasets: [{ data: [310, 520, 480, 610, 890, 1020, 0], borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.1)', borderWidth: 3, fill: true, tension: 0.4 }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } } } }
+                });
+                AppController.updateChartData();
+            },
+
+            updateChartData: () => {
+                if(!AppController.chartInstance) return;
+                const completed = JSON.parse(localStorage.getItem('rider_completedRides')) || [];
+                const totalToday = completed.reduce((s, r) => s + parseFloat(r.pay || 0), 0);
+                AppController.chartInstance.data.datasets[0].data[6] = totalToday;
+                AppController.chartInstance.update();
+            }
+        };
+
+        window.addEventListener('DOMContentLoaded', AppController.init);
+        window.addEventListener('storage', (e) => {
+            if(e.key === 'SHARED_ORDERS') AppController.syncMarketplace();
+        });
+    </script>
+</body>
+</html>
